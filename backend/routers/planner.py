@@ -8,6 +8,7 @@ import models
 import schemas
 from database import get_db
 from deps import get_current_user
+from ingredient_categories import CATEGORY_ORDER, categorize_ingredient
 from recommendations import generate_weekly_plan
 
 router = APIRouter(prefix="/planner", tags=["planner"])
@@ -127,13 +128,23 @@ def grocery_list(
     start = _monday_of(week_start or date.today())
     entries = _week_query(db, current_user.id, start).all()
 
+    # Sum quantities for the same ingredient+unit across every meal in the
+    # week, so a shared ingredient (e.g. eggs in both breakfast and dinner)
+    # becomes one combined line instead of a duplicate entry per meal.
     totals: dict[tuple[str, str], float] = defaultdict(float)
     for entry in entries:
         for link in entry.meal.ingredient_links:
             totals[(link.name, link.unit)] += link.quantity
 
-    items = [
-        schemas.GroceryListItem(ingredient=name, quantity=round(qty, 2), unit=unit)
-        for (name, unit), qty in sorted(totals.items())
+    by_category: dict[str, list[schemas.GroceryListItem]] = defaultdict(list)
+    for (name, unit), qty in sorted(totals.items()):
+        item = schemas.GroceryListItem(ingredient=name, quantity=round(qty, 2), unit=unit)
+        by_category[categorize_ingredient(name)].append(item)
+
+    groups = [
+        schemas.GroceryListGroup(category=category, items=by_category[category])
+        for category in CATEGORY_ORDER
+        if by_category.get(category)
     ]
-    return schemas.GroceryListResponse(week_start=start, items=items)
+    total_items = sum(len(group.items) for group in groups)
+    return schemas.GroceryListResponse(week_start=start, groups=groups, total_items=total_items)

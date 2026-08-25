@@ -16,6 +16,7 @@ class DietaryType(str, PyEnum):
     PALEO = "paleo"
     GLUTEN_FREE = "gluten_free"
     HIGH_PROTEIN = "high_protein"
+    LOW_CARB = "low_carb"
 
 
 class MealType(str, PyEnum):

@@ -9,7 +9,7 @@ interface DietTypeSelectorProps {
 
 export function DietTypeSelector({ value, onChange }: DietTypeSelectorProps) {
   return (
-    <div role="radiogroup" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div role="radiogroup" className="grid grid-cols-3 gap-2">
       {DIETARY_TYPES.map((type) => {
         const Icon = DIET_ICONS[type];
         const selected = value === type;

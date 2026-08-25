@@ -94,6 +94,15 @@ export function UtensilsIcon(props: IconProps) {
   );
 }
 
+export function TrendDownIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 7l7 7 4-4 7 7" />
+      <path d="M21 11v6h-6" />
+    </svg>
+  );
+}
+
 export const DIET_ICONS: Record<DietaryType, ComponentType<IconProps>> = {
   omnivore: UtensilsIcon,
   vegetarian: LeafIcon,
@@ -103,6 +112,7 @@ export const DIET_ICONS: Record<DietaryType, ComponentType<IconProps>> = {
   paleo: DrumstickIcon,
   gluten_free: WheatOffIcon,
   high_protein: DumbbellIcon,
+  low_carb: TrendDownIcon,
 };
 
 export const DIET_ICON_COLORS: Record<DietaryType, string> = {
@@ -114,6 +124,7 @@ export const DIET_ICON_COLORS: Record<DietaryType, string> = {
   paleo: "text-amber-700 dark:text-amber-500",
   gluten_free: "text-yellow-700 dark:text-yellow-500",
   high_protein: "text-red-600 dark:text-red-400",
+  low_carb: "text-purple-600 dark:text-purple-400",
 };
 
 export function DietIcon({ type, className = "h-4 w-4" }: { type: DietaryType; className?: string }) {

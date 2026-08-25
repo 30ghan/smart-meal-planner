@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { api, ApiError } from "@/lib/api";
+import { formatMeasurement } from "@/lib/format";
 import type { GroceryList } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -54,34 +55,51 @@ export default function GroceryListPage() {
         </Link>
       </div>
 
-      <Card className="mt-6">
-        {loading ? (
+      {loading ? (
+        <Card className="mt-6">
           <p className="text-sm text-zinc-500">Loading...</p>
-        ) : error ? (
+        </Card>
+      ) : error ? (
+        <Card className="mt-6">
           <p className="text-sm text-red-600">{error}</p>
-        ) : !list || list.items.length === 0 ? (
-          <div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              No meals planned for this week yet, so there&apos;s nothing to shop for.
-            </p>
-            <Link href="/planner" className="mt-3 inline-block">
-              <Button variant="secondary">Plan your week</Button>
-            </Link>
-          </div>
-        ) : (
-          <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-            {list.items.map((item) => (
-              <li key={`${item.ingredient}-${item.unit}`} className="flex items-center justify-between py-2.5">
-                <span className="text-sm capitalize text-zinc-900 dark:text-zinc-50">{item.ingredient}</span>
-                <span className="text-sm text-zinc-500">
-                  {item.quantity} {item.unit}
-                  {item.quantity !== 1 ? "s" : ""}
-                </span>
-              </li>
+        </Card>
+      ) : !list || list.groups.length === 0 ? (
+        <Card className="mt-6">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            No meals planned for this week yet, so there&apos;s nothing to shop for.
+          </p>
+          <Link href="/planner" className="mt-3 inline-block">
+            <Button variant="secondary">Plan your week</Button>
+          </Link>
+        </Card>
+      ) : (
+        <>
+          <p className="mt-6 text-sm text-zinc-500">
+            {list.total_items} item{list.total_items !== 1 ? "s" : ""} across {list.groups.length} categor
+            {list.groups.length !== 1 ? "ies" : "y"}.
+          </p>
+          <div className="mt-3 flex flex-col gap-4">
+            {list.groups.map((group) => (
+              <Card key={group.category}>
+                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{group.category}</h2>
+                <ul className="mt-2 divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {group.items.map((item) => (
+                    <li
+                      key={`${item.ingredient}-${item.unit}`}
+                      className="flex items-center justify-between py-2.5"
+                    >
+                      <span className="text-sm capitalize text-zinc-900 dark:text-zinc-50">{item.ingredient}</span>
+                      <span className="text-sm text-zinc-500">
+                        {formatMeasurement(item.quantity, item.unit)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
             ))}
-          </ul>
-        )}
-      </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 }

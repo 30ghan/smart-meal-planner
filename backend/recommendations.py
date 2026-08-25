@@ -60,21 +60,48 @@ def recommend_meals(
     return eligible[:limit]
 
 
+# How many of the closest-calorie-fit eligible meals to shuffle among when
+# picking a day's meal, so the week has some variety without ignoring the
+# calorie goal entirely by reaching for a poor-fit meal just for novelty.
+VARIETY_WINDOW = 5
+
+
+def _pick_week_of_meals(eligible: list[models.Meal], days: int) -> list[models.Meal]:
+    """Choose one meal per day from `eligible` (already sorted by calorie
+    fit), avoiding repeats until every eligible meal has been used once --
+    only then does it start reusing meals, so a day repeats a previous
+    choice only when there genuinely aren't enough distinct options."""
+    unused = list(eligible)
+    chosen: list[models.Meal] = []
+    for _ in range(days):
+        if not unused:
+            unused = list(eligible)
+        window = unused[:VARIETY_WINDOW] if len(unused) >= VARIETY_WINDOW else unused
+        pick = random.choice(window)
+        unused.remove(pick)
+        chosen.append(pick)
+    return chosen
+
+
 def generate_weekly_plan(db: Session, user: models.User, week_start) -> list[models.PlannerEntry]:
-    """Build a full 7-day x 3-meal plan from recommended meals, picking
-    randomly among the top matches for each slot so the week isn't repetitive."""
+    """Build a full 7-day x 3-meal plan. For each meal type, every eligible
+    meal is used at most once before any meal repeats, so (given enough
+    variety in the catalog for the user's diet) no meal appears twice in
+    the same week."""
     preference = user.preference
+    days = list(models.DayOfWeek)
     entries: list[models.PlannerEntry] = []
-    for day in models.DayOfWeek:
-        for meal_type in models.MealType:
-            options = recommend_meals(db, preference, meal_type=meal_type, limit=5)
-            if not options:
-                continue
-            chosen = random.choice(options)
+
+    for meal_type in models.MealType:
+        eligible = recommend_meals(db, preference, meal_type=meal_type, limit=1000)
+        if not eligible:
+            continue
+        week_of_meals = _pick_week_of_meals(eligible, len(days))
+        for day, meal in zip(days, week_of_meals):
             entries.append(
                 models.PlannerEntry(
                     user_id=user.id,
-                    meal_id=chosen.id,
+                    meal_id=meal.id,
                     week_start=week_start,
                     day_of_week=day,
                     meal_type=meal_type,

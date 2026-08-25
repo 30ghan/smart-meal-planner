@@ -6,7 +6,8 @@ export type DietaryType =
   | "keto"
   | "paleo"
   | "gluten_free"
-  | "high_protein";
+  | "high_protein"
+  | "low_carb";
 
 export type MealType = "breakfast" | "lunch" | "dinner";
 
@@ -40,6 +41,7 @@ export const DIETARY_TYPES: DietaryType[] = [
   "paleo",
   "gluten_free",
   "high_protein",
+  "low_carb",
 ];
 
 export interface User {
@@ -92,7 +94,13 @@ export interface GroceryListItem {
   unit: string;
 }
 
+export interface GroceryListGroup {
+  category: string;
+  items: GroceryListItem[];
+}
+
 export interface GroceryList {
   week_start: string;
-  items: GroceryListItem[];
+  groups: GroceryListGroup[];
+  total_items: number;
 }

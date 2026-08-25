@@ -9,6 +9,7 @@ export const DIET_LABELS: Record<DietaryType, string> = {
   paleo: "Paleo",
   gluten_free: "Gluten-free",
   high_protein: "High protein",
+  low_carb: "Low-carb",
 };
 
 // Ingredient/name keywords used to flag a meal as containing meat, poultry,

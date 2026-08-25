@@ -125,6 +125,12 @@ class GroceryListItem(BaseModel):
     unit: str
 
 
+class GroceryListGroup(BaseModel):
+    category: str
+    items: list[GroceryListItem]
+
+
 class GroceryListResponse(BaseModel):
     week_start: date
-    items: list[GroceryListItem]
+    groups: list[GroceryListGroup]
+    total_items: int
