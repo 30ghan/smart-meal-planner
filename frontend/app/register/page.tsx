@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { ApiError } from "@/lib/api";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -35,7 +36,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-16">
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
+      <Link href="/" className="mb-8">
+        <Logo badgeClassName="h-10 w-10" iconClassName="h-5 w-5" textClassName="text-xl" />
+      </Link>
       <Card className="w-full max-w-sm">
         <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Create your account</h1>
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">

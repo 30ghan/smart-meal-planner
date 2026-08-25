@@ -3,21 +3,12 @@
 import { useEffect, useState, type FormEvent } from "react";
 
 import { api, ApiError } from "@/lib/api";
-import { DIETARY_TYPES, type DietaryType, type Preference } from "@/lib/types";
+import type { DietaryType, Preference } from "@/lib/types";
+import { DietTypeSelector } from "@/components/DietTypeSelector";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Input, Select } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
 import { TagInput } from "@/components/ui/TagInput";
-
-const DIETARY_LABELS: Record<DietaryType, string> = {
-  omnivore: "Omnivore",
-  vegetarian: "Vegetarian",
-  vegan: "Vegan",
-  pescatarian: "Pescatarian",
-  keto: "Keto",
-  paleo: "Paleo",
-  gluten_free: "Gluten-free",
-};
 
 export default function PreferencesPage() {
   const [loading, setLoading] = useState(true);
@@ -77,20 +68,8 @@ export default function PreferencesPage() {
       <Card className="mt-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
-            <label htmlFor="dietaryType" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Dietary type
-            </label>
-            <Select
-              id="dietaryType"
-              value={dietaryType}
-              onChange={(e) => setDietaryType(e.target.value as DietaryType)}
-            >
-              {DIETARY_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {DIETARY_LABELS[type]}
-                </option>
-              ))}
-            </Select>
+            <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Dietary type</label>
+            <DietTypeSelector value={dietaryType} onChange={setDietaryType} />
           </div>
 
           <div>

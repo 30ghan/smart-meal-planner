@@ -17,13 +17,22 @@ function mondayOf(date: Date): Date {
   return monday;
 }
 
+function formatDate(date: Date): string {
+  // Local date parts, not toISOString() -- that converts to UTC first and
+  // rolls midnight-local back a day for positive UTC offsets (e.g. BST).
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function GroceryListPage() {
   const [list, setList] = useState<GroceryList | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const weekStart = mondayOf(new Date()).toISOString().slice(0, 10);
+    const weekStart = formatDate(mondayOf(new Date()));
     api
       .get<GroceryList>(`/planner/grocery-list?week_start=${weekStart}`)
       .then(setList)

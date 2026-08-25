@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -26,8 +27,8 @@ export function Nav() {
   return (
     <header className="border-b border-zinc-200 dark:border-zinc-800">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-          Smart Meal Planner
+        <Link href="/">
+          <Logo />
         </Link>
 
         {!loading && user && (

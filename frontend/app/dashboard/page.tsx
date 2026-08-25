@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api";
+import { DIET_LABELS, isMeatMeal } from "@/lib/diet";
 import type { DayOfWeek, MealType, Preference, PlannerEntry } from "@/lib/types";
 import { MEAL_TYPES } from "@/lib/types";
+import { DietIcon, DrumstickIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useAuth } from "@/context/AuthContext";
@@ -32,6 +34,11 @@ export default function DashboardPage() {
         setPreference(pref);
         const today = todayName();
         setTodaysEntries(entries.filter((e) => e.day_of_week === today));
+      })
+      .catch(() => {
+        // A 401 here triggers a redirect to /login inside the api client;
+        // any other failure just leaves the dashboard cards in their
+        // loading-finished, empty state rather than crashing the page.
       })
       .finally(() => setLoading(false));
   }, []);
@@ -63,7 +70,10 @@ export default function DashboardPage() {
                 return (
                   <li key={mealType} className="flex items-center justify-between text-sm">
                     <span className="text-zinc-500">{MEAL_TYPE_LABELS[mealType]}</span>
-                    <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                    <span className="flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-50">
+                      {entry && isMeatMeal(entry.meal) && (
+                        <DrumstickIcon className="h-3.5 w-3.5 text-amber-700 dark:text-amber-500" />
+                      )}
                       {entry ? entry.meal.name : "Not planned"}
                     </span>
                   </li>
@@ -81,9 +91,12 @@ export default function DashboardPage() {
             <ul className="mt-3 flex flex-col gap-2 text-sm">
               <li className="flex justify-between">
                 <span className="text-zinc-500">Diet</span>
-                <span className="font-medium capitalize text-zinc-900 dark:text-zinc-50">
-                  {preference?.dietary_type.replace("_", " ")}
-                </span>
+                {preference && (
+                  <span className="flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-50">
+                    <DietIcon type={preference.dietary_type} className="h-3.5 w-3.5" />
+                    {DIET_LABELS[preference.dietary_type]}
+                  </span>
+                )}
               </li>
               <li className="flex justify-between">
                 <span className="text-zinc-500">Calorie goal</span>

@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api, ApiError } from "@/lib/api";
+import { isMeatMeal } from "@/lib/diet";
 import { DAYS_OF_WEEK, MEAL_TYPES, type DayOfWeek, type Meal, type MealType, type PlannerEntry } from "@/lib/types";
+import { CalorieWheel } from "@/components/CalorieWheel";
+import { DrumstickIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -40,7 +43,13 @@ function addDays(date: Date, amount: number): Date {
 }
 
 function formatDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  // Format using local date parts. toISOString() converts to UTC first,
+  // which rolls midnight-local back to the previous day for any positive
+  // UTC offset (e.g. BST) and silently sends the wrong week to the API.
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export default function PlannerPage() {
@@ -82,7 +91,12 @@ export default function PlannerPage() {
   useEffect(() => {
     Promise.all(
       MEAL_TYPES.map((mealType) => api.get<Meal[]>(`/meals/recommended?meal_type=${mealType}&limit=8`)),
-    ).then(([breakfast, lunch, dinner]) => setRecommended({ breakfast, lunch, dinner }));
+    )
+      .then(([breakfast, lunch, dinner]) => setRecommended({ breakfast, lunch, dinner }))
+      .catch(() => {
+        // A 401 here triggers a redirect to /login inside the api client;
+        // any other failure just leaves the "swap meal" pickers empty.
+      });
   }, []);
 
   async function handleGenerate() {
@@ -190,9 +204,14 @@ export default function PlannerPage() {
                       <div className="flex-1 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
                     ) : entry ? (
                       <>
-                        <div>
-                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{entry.meal.name}</p>
-                          <p className="mt-1 text-xs text-zinc-500">{entry.meal.calories} kcal</p>
+                        <div className="flex items-center gap-2">
+                          <CalorieWheel calories={entry.meal.calories} size={34} />
+                          <p className="flex items-center gap-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                            {isMeatMeal(entry.meal) && (
+                              <DrumstickIcon className="h-3 w-3 shrink-0 text-amber-700 dark:text-amber-500" />
+                            )}
+                            {entry.meal.name}
+                          </p>
                         </div>
                         <button
                           type="button"

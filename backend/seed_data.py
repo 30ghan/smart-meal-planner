@@ -48,7 +48,7 @@ SAMPLE_MEALS = [
         "protein_g": 24,
         "carbs_g": 12,
         "fat_g": 26,
-        "dietary_tags": ["vegetarian", "gluten_free", "keto", "paleo"],
+        "dietary_tags": ["vegetarian", "gluten_free", "keto", "paleo", "high_protein"],
         "allergens": ["eggs"],
         "ingredients": [
             {"name": "eggs", "quantity": 3, "unit": "unit"},
@@ -81,7 +81,7 @@ SAMPLE_MEALS = [
         "protein_g": 40,
         "carbs_g": 18,
         "fat_g": 26,
-        "dietary_tags": ["gluten_free", "paleo", "keto"],
+        "dietary_tags": ["gluten_free", "paleo", "keto", "high_protein"],
         "allergens": [],
         "ingredients": [
             {"name": "chicken breast", "quantity": 6, "unit": "oz"},
@@ -115,7 +115,7 @@ SAMPLE_MEALS = [
         "protein_g": 32,
         "carbs_g": 46,
         "fat_g": 20,
-        "dietary_tags": ["pescatarian", "gluten_free"],
+        "dietary_tags": ["pescatarian", "gluten_free", "high_protein"],
         "allergens": ["shellfish"],
         "ingredients": [
             {"name": "shrimp", "quantity": 6, "unit": "oz"},
@@ -149,7 +149,7 @@ SAMPLE_MEALS = [
         "protein_g": 34,
         "carbs_g": 42,
         "fat_g": 28,
-        "dietary_tags": [],
+        "dietary_tags": ["high_protein"],
         "allergens": ["gluten"],
         "ingredients": [
             {"name": "turkey breast", "quantity": 4, "unit": "oz"},
@@ -167,7 +167,7 @@ SAMPLE_MEALS = [
         "protein_g": 44,
         "carbs_g": 14,
         "fat_g": 40,
-        "dietary_tags": ["pescatarian", "gluten_free", "keto", "paleo"],
+        "dietary_tags": ["pescatarian", "gluten_free", "keto", "paleo", "high_protein"],
         "allergens": ["fish"],
         "ingredients": [
             {"name": "salmon fillet", "quantity": 8, "unit": "oz"},
@@ -184,7 +184,7 @@ SAMPLE_MEALS = [
         "protein_g": 38,
         "carbs_g": 62,
         "fat_g": 26,
-        "dietary_tags": [],
+        "dietary_tags": ["high_protein"],
         "allergens": ["soy", "gluten"],
         "ingredients": [
             {"name": "beef sirloin", "quantity": 6, "unit": "oz"},
@@ -219,7 +219,7 @@ SAMPLE_MEALS = [
         "protein_g": 32,
         "carbs_g": 20,
         "fat_g": 30,
-        "dietary_tags": ["gluten_free", "keto", "paleo"],
+        "dietary_tags": ["gluten_free", "keto", "paleo", "high_protein"],
         "allergens": [],
         "ingredients": [
             {"name": "zucchini", "quantity": 2, "unit": "unit"},

@@ -5,7 +5,8 @@ export type DietaryType =
   | "pescatarian"
   | "keto"
   | "paleo"
-  | "gluten_free";
+  | "gluten_free"
+  | "high_protein";
 
 export type MealType = "breakfast" | "lunch" | "dinner";
 
@@ -38,6 +39,7 @@ export const DIETARY_TYPES: DietaryType[] = [
   "keto",
   "paleo",
   "gluten_free",
+  "high_protein",
 ];
 
 export interface User {
