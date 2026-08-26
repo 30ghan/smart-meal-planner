@@ -7,10 +7,36 @@ import { api } from "@/lib/api";
 import { DIET_LABELS, isMeatMeal } from "@/lib/diet";
 import type { DayOfWeek, MealType, Preference, PlannerEntry } from "@/lib/types";
 import { MEAL_TYPES } from "@/lib/types";
-import { DietIcon, DrumstickIcon } from "@/components/icons";
+import { CalendarIcon, DietIcon, DrumstickIcon, ShoppingBagIcon, SlidersIcon, UtensilsIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { IconBadge } from "@/components/ui/IconBadge";
 import { useAuth } from "@/context/AuthContext";
+
+const QUICK_LINKS = [
+  {
+    href: "/planner",
+    icon: CalendarIcon,
+    iconClassName: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+    title: "Weekly planner",
+    description: "View or generate your 7-day plan.",
+  },
+  {
+    href: "/planner/grocery-list",
+    icon: ShoppingBagIcon,
+    iconClassName: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    title: "Grocery list",
+    description: "See what to buy for this week.",
+  },
+  {
+    href: "/meals",
+    icon: UtensilsIcon,
+    iconClassName: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    title: "Browse meals",
+    description: "Explore the full meal catalog.",
+  },
+];
 
 const MEAL_TYPE_LABELS: Record<MealType, string> = {
   breakfast: "Breakfast",
@@ -45,13 +71,17 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-12">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+      <Eyebrow>Dashboard</Eyebrow>
+      <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
         Welcome back{user ? `, ${user.full_name}` : ""}
       </h1>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <Card>
-          <h2 className="font-medium text-zinc-900 dark:text-zinc-50">Today&apos;s meals</h2>
+          <h2 className="flex items-center gap-2 font-bold text-zinc-900 dark:text-zinc-50">
+            <CalendarIcon className="h-4 w-4 text-zinc-400" />
+            Today&apos;s meals
+          </h2>
           {loading ? (
             <p className="mt-2 text-sm text-zinc-500">Loading...</p>
           ) : todaysEntries.length === 0 ? (
@@ -84,7 +114,10 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <h2 className="font-medium text-zinc-900 dark:text-zinc-50">Your preferences</h2>
+          <h2 className="flex items-center gap-2 font-bold text-zinc-900 dark:text-zinc-50">
+            <SlidersIcon className="h-4 w-4 text-zinc-400" />
+            Your preferences
+          </h2>
           {loading ? (
             <p className="mt-2 text-sm text-zinc-500">Loading...</p>
           ) : (
@@ -119,30 +152,17 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
-        <Link href="/planner">
-          <Card className="transition-colors hover:border-zinc-400 dark:hover:border-zinc-600">
-            <h3 className="font-medium text-zinc-900 dark:text-zinc-50">Weekly planner</h3>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              View or generate your 7-day plan.
-            </p>
-          </Card>
-        </Link>
-        <Link href="/planner/grocery-list">
-          <Card className="transition-colors hover:border-zinc-400 dark:hover:border-zinc-600">
-            <h3 className="font-medium text-zinc-900 dark:text-zinc-50">Grocery list</h3>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              See what to buy for this week.
-            </p>
-          </Card>
-        </Link>
-        <Link href="/meals">
-          <Card className="transition-colors hover:border-zinc-400 dark:hover:border-zinc-600">
-            <h3 className="font-medium text-zinc-900 dark:text-zinc-50">Browse meals</h3>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Explore the full meal catalog.
-            </p>
-          </Card>
-        </Link>
+        {QUICK_LINKS.map((link) => (
+          <Link key={link.href} href={link.href}>
+            <Card className="h-full transition-colors hover:border-zinc-400 dark:hover:border-zinc-600">
+              <IconBadge className={link.iconClassName}>
+                <link.icon className="h-5 w-5" />
+              </IconBadge>
+              <h3 className="mt-4 font-bold text-zinc-900 dark:text-zinc-50">{link.title}</h3>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{link.description}</p>
+            </Card>
+          </Link>
+        ))}
       </div>
     </div>
   );

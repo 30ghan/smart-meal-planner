@@ -7,6 +7,7 @@ import { DIET_LABELS, isMeatMeal } from "@/lib/diet";
 import { DIETARY_TYPES, MEAL_TYPES, type DietaryType, type Meal, type MealType } from "@/lib/types";
 import { CalorieWheel } from "@/components/CalorieWheel";
 import { DietIcon, DrumstickIcon } from "@/components/icons";
+import { MacroBars } from "@/components/MacroBars";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Input";
 
@@ -14,6 +15,12 @@ const MEAL_TYPE_LABELS: Record<MealType, string> = {
   breakfast: "Breakfast",
   lunch: "Lunch",
   dinner: "Dinner",
+};
+
+const MEAL_TYPE_BADGE_CLASSES: Record<MealType, string> = {
+  breakfast: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  lunch: "bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  dinner: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
 };
 
 const KNOWN_DIET_TAGS = new Set<string>(DIETARY_TYPES);
@@ -41,7 +48,7 @@ export default function MealsPage() {
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Meal catalog</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Meal catalog</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Browse every meal available for your weekly plan.
           </p>
@@ -67,7 +74,7 @@ export default function MealsPage() {
           {meals.map((meal) => (
             <Card key={meal.id}>
               <div className="flex items-start justify-between gap-2">
-                <h2 className="flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-50">
+                <h2 className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-zinc-50">
                   {isMeatMeal(meal) && (
                     <DrumstickIcon
                       className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-500"
@@ -76,7 +83,9 @@ export default function MealsPage() {
                   )}
                   {meal.name}
                 </h2>
-                <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${MEAL_TYPE_BADGE_CLASSES[meal.meal_type]}`}
+                >
                   {MEAL_TYPE_LABELS[meal.meal_type]}
                 </span>
               </div>
@@ -84,10 +93,8 @@ export default function MealsPage() {
 
               <div className="mt-3 flex items-center gap-4">
                 <CalorieWheel calories={meal.calories} size={48} />
-                <div className="flex flex-col gap-0.5 text-xs text-zinc-500">
-                  <span>{meal.protein_g}g protein</span>
-                  <span>{meal.carbs_g}g carbs</span>
-                  <span>{meal.fat_g}g fat</span>
+                <div className="flex-1">
+                  <MacroBars proteinG={meal.protein_g} carbsG={meal.carbs_g} fatG={meal.fat_g} />
                 </div>
               </div>
 

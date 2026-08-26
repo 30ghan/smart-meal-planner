@@ -49,7 +49,7 @@ function LoginForm() {
         <Logo badgeClassName="h-10 w-10" iconClassName="h-5 w-5" textClassName="text-xl" />
       </Link>
       <Card className="w-full max-w-sm">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Log in</h1>
+        <h1 className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Log in</h1>
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <div>
             <label htmlFor="email" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">

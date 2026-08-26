@@ -149,7 +149,7 @@ export default function PlannerPage() {
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Weekly planner</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Weekly planner</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             {weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })} &ndash;{" "}
             {weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}

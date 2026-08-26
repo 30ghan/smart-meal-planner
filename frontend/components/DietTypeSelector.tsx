@@ -20,10 +20,10 @@ export function DietTypeSelector({ value, onChange }: DietTypeSelectorProps) {
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(type)}
-            className={`flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-center transition-colors ${
+            className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-3 text-center transition-colors ${
               selected
-                ? "border-zinc-900 bg-zinc-50 dark:border-zinc-50 dark:bg-zinc-800"
-                : "border-zinc-200 hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-500"
+                ? "border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10"
+                : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
             }`}
           >
             <Icon className={`h-5 w-5 ${DIET_ICON_COLORS[type]}`} />

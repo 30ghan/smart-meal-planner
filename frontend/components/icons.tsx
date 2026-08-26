@@ -103,6 +103,38 @@ export function TrendDownIcon(props: IconProps) {
   );
 }
 
+export function SlidersIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 6h6M16 6h4" />
+      <circle cx="12" cy="6" r="2" fill="currentColor" stroke="none" />
+      <path d="M4 12h2M10 12h10" />
+      <circle cx="7" cy="12" r="2" fill="currentColor" stroke="none" />
+      <path d="M4 18h10M18 18h2" />
+      <circle cx="15" cy="18" r="2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+      <path d="M3.5 9.5h17M8 3v4M16 3v4" />
+    </svg>
+  );
+}
+
+export function ShoppingBagIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6.5 3 4 7v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7l-2.5-4Z" />
+      <path d="M4 7h16" />
+      <path d="M15.5 11a3.5 3.5 0 0 1-7 0" />
+    </svg>
+  );
+}
+
 export const DIET_ICONS: Record<DietaryType, ComponentType<IconProps>> = {
   omnivore: UtensilsIcon,
   vegetarian: LeafIcon,

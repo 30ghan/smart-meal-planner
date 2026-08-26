@@ -45,7 +45,7 @@ export default function GroceryListPage() {
     <div className="mx-auto w-full max-w-2xl px-6 py-12">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Grocery list</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Grocery list</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Every ingredient needed for this week&apos;s planned meals.
           </p>

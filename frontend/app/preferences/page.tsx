@@ -60,7 +60,7 @@ export default function PreferencesPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Your preferences</h1>
+      <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Your preferences</h1>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
         Used to recommend meals, build your weekly plan, and keep your grocery list relevant.
       </p>

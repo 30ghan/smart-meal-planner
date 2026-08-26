@@ -25,7 +25,7 @@ export function Nav() {
   }
 
   return (
-    <header className="border-b border-zinc-200 dark:border-zinc-800">
+    <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/80">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/">
           <Logo />
