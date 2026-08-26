@@ -10,6 +10,7 @@ import { CalorieWheel } from "@/components/CalorieWheel";
 import { DrumstickIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
 
 const MEAL_TYPE_LABELS: Record<MealType, string> = {
   breakfast: "Breakfast",
@@ -166,6 +167,7 @@ export default function PlannerPage() {
             Next
           </Button>
           <Button onClick={handleGenerate} disabled={generating}>
+            {generating && <Spinner className="h-4 w-4" />}
             {generating ? "Generating..." : "Generate week"}
           </Button>
           <Link href="/planner/grocery-list">
@@ -176,7 +178,13 @@ export default function PlannerPage() {
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-      <div className="mt-6 overflow-x-auto">
+      <div className="relative mt-6 overflow-x-auto">
+        {generating && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-3xl bg-zinc-50/80 backdrop-blur-sm dark:bg-zinc-950/80">
+            <Spinner className="h-8 w-8 text-emerald-500" />
+            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Building your week...</p>
+          </div>
+        )}
         <div className="grid min-w-[900px] grid-cols-[100px_repeat(7,1fr)] gap-2">
           <div />
           {DAYS_OF_WEEK.map((day, i) => (
