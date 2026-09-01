@@ -46,8 +46,9 @@ export default function Home() {
           Never wonder what to eat again
         </h1>
         <p className="mt-5 text-lg text-zinc-600 dark:text-zinc-400">
-          Set your preferences once. Smart Meal Planner recommends meals that avoid your allergens,
-          skip foods you dislike, and hit your calorie goals &mdash; then builds your grocery list for you.
+          Try it instantly, no account needed &mdash; browse meals and get real recommendations that avoid your
+          allergens, skip foods you dislike, and hit your calorie goals. Create a free account only when
+          you&apos;re ready to save a weekly plan and grocery list.
         </p>
 
         {!loading && (
@@ -58,8 +59,8 @@ export default function Home() {
               </Link>
             ) : (
               <>
-                <Link href="/register">
-                  <Button>Get started</Button>
+                <Link href="/meals">
+                  <Button>Try it free</Button>
                 </Link>
                 <Link href="/login">
                   <Button variant="secondary">Log in</Button>
@@ -88,6 +89,13 @@ export default function Home() {
           </Card>
         ))}
       </div>
+
+      {!loading && !user && (
+        <p className="mt-6 text-sm text-zinc-500">
+          Steps 1 and 2 are free to try with no account &mdash; sign up only when you&apos;re ready to save your
+          week.
+        </p>
+      )}
     </div>
   );
 }
