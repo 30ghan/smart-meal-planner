@@ -5,6 +5,7 @@ import models
 import schemas
 from database import get_db
 from deps import get_current_user
+from ml.similarity import find_similar_meal_ids
 from recommendations import recommend_meals
 
 router = APIRouter(prefix="/meals", tags=["meals"])
@@ -43,6 +44,23 @@ def get_meal(meal_id: int, db: Session = Depends(get_db)) -> models.Meal:
     if meal is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meal not found")
     return meal
+
+
+@router.get("/{meal_id}/similar", response_model=list[schemas.MealRead])
+def get_similar_meals(
+    meal_id: int,
+    limit: int = Query(default=5, ge=1, le=20),
+    db: Session = Depends(get_db),
+) -> list[models.Meal]:
+    target = db.get(models.Meal, meal_id)
+    if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meal not found")
+
+    all_meals = _meal_query(db).all()
+    similar_ids = find_similar_meal_ids(meal_id, all_meals, top_n=limit)
+
+    by_id = {meal.id: meal for meal in all_meals}
+    return [by_id[similar_id] for similar_id in similar_ids]
 
 
 @router.post("", response_model=schemas.MealRead, status_code=status.HTTP_201_CREATED)
