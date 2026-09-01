@@ -5,12 +5,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api, ApiError } from "@/lib/api";
 import { isMeatMeal } from "@/lib/diet";
+import { getGuestPreferences, guestPreferencesToSearchParams } from "@/lib/guestPreferences";
 import { DAYS_OF_WEEK, MEAL_TYPES, type DayOfWeek, type Meal, type MealType, type PlannerEntry } from "@/lib/types";
 import { CalorieWheel } from "@/components/CalorieWheel";
+import { GuestSignUpPrompt } from "@/components/GuestSignUpPrompt";
 import { DrumstickIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
+import { useAuth } from "@/context/AuthContext";
 
 const MEAL_TYPE_LABELS: Record<MealType, string> = {
   breakfast: "Breakfast",
@@ -27,6 +30,9 @@ const DAY_LABELS: Record<DayOfWeek, string> = {
   saturday: "Sat",
   sunday: "Sun",
 };
+
+const GUEST_PROMPT_MESSAGE =
+  "Generating and saving a real weekly plan needs a free account, so your picks stick around next time you visit. It only takes a few seconds, and whatever you've set on this device carries straight over.";
 
 function mondayOf(date: Date): Date {
   const day = date.getDay();
@@ -54,6 +60,8 @@ function formatDate(date: Date): string {
 }
 
 export default function PlannerPage() {
+  const { user, loading: authLoading } = useAuth();
+
   const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()));
   const [entries, setEntries] = useState<PlannerEntry[]>([]);
   const [recommended, setRecommended] = useState<Record<MealType, Meal[]>>({
@@ -65,11 +73,20 @@ export default function PlannerPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingSlot, setPendingSlot] = useState<string | null>(null);
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   const weekStartParam = useMemo(() => formatDate(weekStart), [weekStart]);
   const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
 
   const loadWeek = useCallback(async () => {
+    // Guests have nothing to load -- every planner endpoint requires a
+    // real account, on purpose (see backend/routers/planner.py). Skip the
+    // request entirely rather than let it 401; the grid just renders
+    // every slot as "Not planned", which is the honest guest state.
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -80,27 +97,43 @@ export default function PlannerPage() {
     } finally {
       setLoading(false);
     }
-  }, [weekStartParam]);
+  }, [weekStartParam, user]);
 
   useEffect(() => {
+    if (authLoading) return;
     // No data-fetching library here; loadWeek() resets loading/error state
-    // synchronously each time the selected week changes.
+    // synchronously each time the selected week (or auth state) changes.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadWeek();
-  }, [loadWeek]);
+  }, [authLoading, loadWeek]);
 
   useEffect(() => {
-    Promise.all(
-      MEAL_TYPES.map((mealType) => api.get<Meal[]>(`/meals/recommended?meal_type=${mealType}&limit=8`)),
-    )
+    if (authLoading) return;
+    // Logged-in users' saved preferences are read server-side from the
+    // access_token cookie; a guest's preferences are sent as query params
+    // instead -- /meals/recommended accepts both. This is what makes the
+    // "swap meal" pickers show real, personalized options even in preview.
+    const guestParams = user ? null : guestPreferencesToSearchParams(getGuestPreferences());
+    const withParams = (mealType: MealType) => {
+      const params = new URLSearchParams(guestParams ?? undefined);
+      params.set("meal_type", mealType);
+      params.set("limit", "8");
+      return params.toString();
+    };
+
+    Promise.all(MEAL_TYPES.map((mealType) => api.get<Meal[]>(`/meals/recommended?${withParams(mealType)}`)))
       .then(([breakfast, lunch, dinner]) => setRecommended({ breakfast, lunch, dinner }))
       .catch(() => {
         // A 401 here triggers a redirect to /login inside the api client;
         // any other failure just leaves the "swap meal" pickers empty.
       });
-  }, []);
+  }, [authLoading, user]);
 
   async function handleGenerate() {
+    if (!user) {
+      setShowGuestPrompt(true);
+      return;
+    }
     setGenerating(true);
     setError(null);
     try {
@@ -114,6 +147,10 @@ export default function PlannerPage() {
   }
 
   async function handleAssign(day: DayOfWeek, mealType: MealType, mealId: number) {
+    if (!user) {
+      setShowGuestPrompt(true);
+      return;
+    }
     const slotKey = `${day}-${mealType}`;
     setPendingSlot(slotKey);
     setError(null);
@@ -170,11 +207,27 @@ export default function PlannerPage() {
             {generating && <Spinner className="h-4 w-4" />}
             {generating ? "Generating..." : "Generate week"}
           </Button>
-          <Link href="/planner/grocery-list">
-            <Button variant="secondary">Grocery list</Button>
-          </Link>
+          {user ? (
+            <Link href="/planner/grocery-list">
+              <Button variant="secondary">Grocery list</Button>
+            </Link>
+          ) : (
+            <Button variant="secondary" onClick={() => setShowGuestPrompt(true)}>
+              Grocery list
+            </Button>
+          )}
         </div>
       </div>
+
+      {!authLoading && !user && (
+        <p className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+          You&apos;re previewing the planner. The meals below are real recommendations, but{" "}
+          <Link href="/register" className="font-semibold underline underline-offset-2">
+            create a free account
+          </Link>{" "}
+          to actually generate and save your week.
+        </p>
+      )}
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
@@ -254,6 +307,12 @@ export default function PlannerPage() {
           ))}
         </div>
       </div>
+
+      <GuestSignUpPrompt
+        open={showGuestPrompt}
+        onClose={() => setShowGuestPrompt(false)}
+        message={GUEST_PROMPT_MESSAGE}
+      />
     </div>
   );
 }

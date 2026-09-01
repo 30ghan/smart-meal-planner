@@ -1,6 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/preferences", "/planner", "/meals"];
+// /meals, /preferences, and /planner are intentionally NOT here -- guests
+// can browse meals, set guest-only preferences, and preview the planner
+// without an account. Only /dashboard (which is meaningless without a
+// saved account) stays gated at the route level. The pages behind
+// /preferences and /planner branch on auth state themselves to show a
+// guest-appropriate experience instead of calling endpoints that require
+// login (see AuthContext's `user`).
+const PROTECTED_PREFIXES = ["/dashboard"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -16,5 +23,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/preferences/:path*", "/planner/:path*", "/meals/:path*"],
+  matcher: ["/dashboard/:path*"],
 };

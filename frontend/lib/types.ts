@@ -60,6 +60,9 @@ export interface Preference {
   disliked_foods: string[];
 }
 
+// A guest's Preference has no id/user_id -- it's never persisted server-side.
+export type GuestPreferences = Pick<Preference, "dietary_type" | "calorie_goal" | "allergies" | "disliked_foods">;
+
 export interface MealIngredient {
   name: string;
   quantity: number;

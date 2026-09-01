@@ -1,15 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api";
-import { DIET_LABELS, isMeatMeal } from "@/lib/diet";
-import { DIETARY_TYPES, MEAL_TYPES, type DietaryType, type Meal, type MealType } from "@/lib/types";
-import { CalorieWheel } from "@/components/CalorieWheel";
-import { DietIcon, DrumstickIcon } from "@/components/icons";
-import { MacroBars } from "@/components/MacroBars";
-import { Card } from "@/components/ui/Card";
+import { getGuestPreferences, guestPreferencesToSearchParams } from "@/lib/guestPreferences";
+import { MEAL_TYPES, type Meal, type MealType } from "@/lib/types";
+import { MealCard } from "@/components/MealCard";
 import { Select } from "@/components/ui/Input";
+import { useAuth } from "@/context/AuthContext";
 
 const MEAL_TYPE_LABELS: Record<MealType, string> = {
   breakfast: "Breakfast",
@@ -17,18 +16,15 @@ const MEAL_TYPE_LABELS: Record<MealType, string> = {
   dinner: "Dinner",
 };
 
-const MEAL_TYPE_BADGE_CLASSES: Record<MealType, string> = {
-  breakfast: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  lunch: "bg-sky-500/10 text-sky-700 dark:text-sky-400",
-  dinner: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
-};
-
-const KNOWN_DIET_TAGS = new Set<string>(DIETARY_TYPES);
-
 export default function MealsPage() {
+  const { user, loading: authLoading } = useAuth();
+
   const [meals, setMeals] = useState<Meal[]>([]);
   const [mealType, setMealType] = useState<MealType | "">("");
   const [loading, setLoading] = useState(true);
+
+  const [recommended, setRecommended] = useState<Meal[]>([]);
+  const [recommendedLoading, setRecommendedLoading] = useState(true);
 
   useEffect(() => {
     // Reset the loading flag synchronously when the filter changes.
@@ -44,15 +40,69 @@ export default function MealsPage() {
       .finally(() => setLoading(false));
   }, [mealType]);
 
+  useEffect(() => {
+    if (authLoading) return;
+
+    // Logged-in users' saved preferences are read server-side from the
+    // access_token cookie -- no query params needed. A guest's preferences
+    // never leave this device, so they're sent as query params instead;
+    // /meals/recommended accepts both without requiring login either way.
+    const params = user ? new URLSearchParams() : guestPreferencesToSearchParams(getGuestPreferences());
+    params.set("limit", "6");
+
+    api
+      .get<Meal[]>(`/meals/recommended?${params.toString()}`)
+      .then(setRecommended)
+      .catch(() => {
+        // Leaves the recommended row empty rather than crashing the page.
+      })
+      .finally(() => setRecommendedLoading(false));
+  }, [authLoading, user]);
+
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Meal catalog</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Browse every meal available for your weekly plan.
-          </p>
+      <div>
+        <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Meal catalog</h1>
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          Browse every meal available for your weekly plan.
+        </p>
+      </div>
+
+      {!authLoading && (recommendedLoading || recommended.length > 0) && (
+        <div className="mt-8">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+              Recommended for you
+            </h2>
+            <p className="text-sm text-zinc-500">
+              {user ? (
+                "Based on your saved preferences."
+              ) : (
+                <>
+                  Based on preferences saved on this device.{" "}
+                  <Link href="/preferences" className="font-medium underline underline-offset-2">
+                    Set them here
+                  </Link>
+                  .
+                </>
+              )}
+            </p>
+          </div>
+
+          {recommendedLoading ? (
+            <p className="mt-4 text-sm text-zinc-500">Loading...</p>
+          ) : (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {recommended.map((meal) => (
+                <MealCard key={meal.id} meal={meal} />
+              ))}
+            </div>
+          )}
         </div>
+      )}
+
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+        <h2 className="text-lg font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">Full catalog</h2>
         <Select
           value={mealType}
           onChange={(e) => setMealType(e.target.value as MealType | "")}
@@ -72,61 +122,7 @@ export default function MealsPage() {
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {meals.map((meal) => (
-            <Card key={meal.id}>
-              <div className="flex items-start justify-between gap-2">
-                <h2 className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-zinc-50">
-                  {isMeatMeal(meal) && (
-                    <DrumstickIcon
-                      className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-500"
-                      aria-label="Contains meat, poultry, or seafood"
-                    />
-                  )}
-                  {meal.name}
-                </h2>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${MEAL_TYPE_BADGE_CLASSES[meal.meal_type]}`}
-                >
-                  {MEAL_TYPE_LABELS[meal.meal_type]}
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{meal.description}</p>
-
-              <div className="mt-3 flex items-center gap-4">
-                <CalorieWheel calories={meal.calories} size={48} />
-                <div className="flex-1">
-                  <MacroBars proteinG={meal.protein_g} carbsG={meal.carbs_g} fatG={meal.fat_g} />
-                </div>
-              </div>
-
-              {meal.dietary_tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {meal.dietary_tags
-                    .filter((tag): tag is DietaryType => KNOWN_DIET_TAGS.has(tag))
-                    .map((tag) => (
-                      <span
-                        key={tag}
-                        className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700 dark:bg-green-950 dark:text-green-400"
-                      >
-                        <DietIcon type={tag} className="h-3 w-3" />
-                        {DIET_LABELS[tag]}
-                      </span>
-                    ))}
-                </div>
-              )}
-
-              {meal.allergens.length > 0 && (
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {meal.allergens.map((allergen) => (
-                    <span
-                      key={allergen}
-                      className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700 dark:bg-red-950 dark:text-red-400"
-                    >
-                      {allergen}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </Card>
+            <MealCard key={meal.id} meal={meal} />
           ))}
         </div>
       )}

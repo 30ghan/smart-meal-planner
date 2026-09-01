@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 import models
 import schemas
 from database import get_db
-from deps import get_current_user
+from deps import get_current_user_or_guest_preference
 from ml.similarity import find_similar_meal_ids
 from recommendations import recommend_meals
 
@@ -33,9 +33,13 @@ def get_recommended_meals(
     meal_type: models.MealType | None = None,
     limit: int = Query(default=10, ge=1, le=50),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    preference: models.Preference = Depends(get_current_user_or_guest_preference),
 ) -> list[models.Meal]:
-    return recommend_meals(db, current_user.preference, meal_type=meal_type, limit=limit)
+    # preference is the logged-in user's real, saved Preference, or a
+    # throwaway one built from query params for a guest -- recommend_meals()
+    # treats both identically, it only ever reads dietary_type/calorie_goal/
+    # allergies/disliked_foods off whatever it's given.
+    return recommend_meals(db, preference, meal_type=meal_type, limit=limit)
 
 
 @router.get("/{meal_id}", response_model=schemas.MealRead)

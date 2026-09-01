@@ -14,6 +14,15 @@ const LINKS = [
   { href: "/preferences", label: "Preferences" },
 ];
 
+// No Dashboard -- it's meaningless without a saved account. Meals,
+// Preferences, and Planner are all guest-accessible, just in a limited
+// preview mode on the Planner side (see app/planner/page.tsx).
+const GUEST_LINKS = [
+  { href: "/planner", label: "Planner" },
+  { href: "/meals", label: "Meals" },
+  { href: "/preferences", label: "Preferences" },
+];
+
 export function Nav() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
@@ -54,7 +63,20 @@ export function Nav() {
         )}
 
         {!loading && !user && (
-          <nav className="flex items-center gap-3">
+          <nav className="flex items-center gap-6">
+            {GUEST_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm font-medium ${
+                  pathname.startsWith(link.href)
+                    ? "text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
             <Link
               href="/login"
               className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"

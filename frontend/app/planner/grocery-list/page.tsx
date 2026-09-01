@@ -8,6 +8,7 @@ import { formatMeasurement } from "@/lib/format";
 import type { GroceryList } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/context/AuthContext";
 
 function mondayOf(date: Date): Date {
   const day = date.getDay();
@@ -28,18 +29,20 @@ function formatDate(date: Date): string {
 }
 
 export default function GroceryListPage() {
+  const { user, loading: authLoading } = useAuth();
   const [list, setList] = useState<GroceryList | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading || !user) return;
     const weekStart = formatDate(mondayOf(new Date()));
     api
       .get<GroceryList>(`/planner/grocery-list?week_start=${weekStart}`)
       .then(setList)
       .catch((err) => setError(err instanceof ApiError ? err.message : "Failed to load grocery list."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [authLoading, user]);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-12">
@@ -55,7 +58,16 @@ export default function GroceryListPage() {
         </Link>
       </div>
 
-      {loading ? (
+      {authLoading ? null : !user ? (
+        <Card className="mt-6">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            A grocery list only makes sense for a saved weekly plan, which needs a free account.
+          </p>
+          <Link href="/register" className="mt-3 inline-block">
+            <Button>Create a free account</Button>
+          </Link>
+        </Card>
+      ) : loading ? (
         <Card className="mt-6">
           <p className="text-sm text-zinc-500">Loading...</p>
         </Card>

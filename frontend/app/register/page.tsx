@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
-import { ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
+import { clearGuestPreferences, getGuestPreferences, hasStoredGuestPreferences } from "@/lib/guestPreferences";
+import type { Preference } from "@/lib/types";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -27,6 +29,20 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       await register(email, password, fullName);
+
+      // Carry over whatever they already set up as a guest, so they don't
+      // have to redo it. Best-effort: registration already succeeded, so a
+      // failure here shouldn't block moving on -- they'd just need to
+      // re-enter preferences, same as any brand-new account.
+      if (hasStoredGuestPreferences()) {
+        try {
+          await api.put<Preference>("/preferences", getGuestPreferences());
+          clearGuestPreferences();
+        } catch {
+          // Ignore -- see comment above.
+        }
+      }
+
       router.push("/preferences");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
