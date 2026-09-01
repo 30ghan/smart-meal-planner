@@ -5,14 +5,7 @@ import random
 from sqlalchemy.orm import Session, joinedload
 
 import models
-
-# Rough calorie split across the three daily meals; used to score how well a
-# candidate meal fits within the user's daily calorie goal.
-MEAL_TYPE_CALORIE_SHARE = {
-    models.MealType.BREAKFAST: 0.25,
-    models.MealType.LUNCH: 0.35,
-    models.MealType.DINNER: 0.40,
-}
+from ml.scoring import score_meals
 
 
 def _matches_diet(meal: models.Meal, dietary_type: models.DietaryType) -> bool:
@@ -30,11 +23,6 @@ def _is_safe(meal: models.Meal, allergies: list[str], disliked_foods: list[str])
     return blocked.isdisjoint(meal_terms) and blocked.isdisjoint(ingredient_terms)
 
 
-def _calorie_target(meal_type: models.MealType, calorie_goal: int) -> int:
-    share = MEAL_TYPE_CALORIE_SHARE.get(meal_type, 1 / 3)
-    return round(calorie_goal * share)
-
-
 def recommend_meals(
     db: Session,
     preference: models.Preference,
@@ -42,7 +30,10 @@ def recommend_meals(
     limit: int = 10,
 ) -> list[models.Meal]:
     """Return meals matching the user's diet and free of allergens/dislikes,
-    ranked by how close they are to the user's per-meal calorie target."""
+    ranked by a learned fit-score model (see ml/scoring.py) instead of a
+    hard-coded formula. The filtering above stays deterministic on purpose
+    -- see _matches_diet/_is_safe -- only the ranking of what survives it
+    is learned."""
     query = db.query(models.Meal).options(
         joinedload(models.Meal.ingredient_links).joinedload(models.MealIngredient.ingredient)
     )
@@ -56,21 +47,26 @@ def recommend_meals(
         if _matches_diet(meal, preference.dietary_type)
         and _is_safe(meal, preference.allergies, preference.disliked_foods)
     ]
-    eligible.sort(key=lambda meal: abs(meal.calories - _calorie_target(meal.meal_type, preference.calorie_goal)))
-    return eligible[:limit]
+    if not eligible:
+        return eligible
+
+    scores = score_meals(db, eligible, preference)
+    ranked = [meal for _, meal in sorted(zip(scores, eligible), key=lambda pair: pair[0], reverse=True)]
+    return ranked[:limit]
 
 
-# How many of the closest-calorie-fit eligible meals to shuffle among when
-# picking a day's meal, so the week has some variety without ignoring the
-# calorie goal entirely by reaching for a poor-fit meal just for novelty.
+# How many of the best-scoring eligible meals to shuffle among when picking
+# a day's meal, so the week has some variety without ignoring the model's
+# ranking entirely by reaching for a poor-fit meal just for novelty.
 VARIETY_WINDOW = 5
 
 
 def _pick_week_of_meals(eligible: list[models.Meal], days: int) -> list[models.Meal]:
-    """Choose one meal per day from `eligible` (already sorted by calorie
-    fit), avoiding repeats until every eligible meal has been used once --
-    only then does it start reusing meals, so a day repeats a previous
-    choice only when there genuinely aren't enough distinct options."""
+    """Choose one meal per day from `eligible` (already ranked best-fit
+    first by recommend_meals()), avoiding repeats until every eligible meal
+    has been used once -- only then does it start reusing meals, so a day
+    repeats a previous choice only when there genuinely aren't enough
+    distinct options."""
     unused = list(eligible)
     chosen: list[models.Meal] = []
     for _ in range(days):
