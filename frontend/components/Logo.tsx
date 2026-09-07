@@ -24,7 +24,7 @@ export function Logo({
       </span>
       {showText && (
         <span className={`font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 ${textClassName}`}>
-          Smart Meal Planner
+          Help Me Meal
         </span>
       )}
     </span>
