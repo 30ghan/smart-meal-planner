@@ -9,15 +9,34 @@ export class ApiError extends Error {
   }
 }
 
+/** Thrown when the API server can't be reached at all (backend not running,
+ *  DNS/connection failure, request blocked). It's an ApiError with status 0
+ *  so every caller's existing `err instanceof ApiError` handling covers it
+ *  and a bare `TypeError: Failed to fetch` never escapes to the console. */
+export class ApiUnreachableError extends ApiError {
+  constructor(url: string) {
+    super(0, `Can't reach the API at ${url}. Is the backend running?`);
+    this.name = "ApiUnreachableError";
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    credentials: "include",
-    headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...options.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      credentials: "include",
+      headers: {
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...options.headers,
+      },
+    });
+  } catch {
+    // fetch() rejects (with a TypeError) only on a network-level failure --
+    // the server is down/unreachable, not an HTTP error status. Normalise
+    // it so it's handled like any other API failure.
+    throw new ApiUnreachableError(API_URL);
+  }
 
   if (!res.ok) {
     let message = res.statusText;
